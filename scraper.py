@@ -28,7 +28,7 @@ def parse_date(text):
 
 
 def extract_from_element(el, base_url):
-    # title
+    
     title = None
     link = None
     for tag in ("h1", "h2", "h3", "a", "strong"):
@@ -38,7 +38,7 @@ def extract_from_element(el, base_url):
                 link = t.get("href") or t.get("data-href")
                 title = (t.get_text() or t.get("title"))
             else:
-                # if there's an anchor inside header
+                
                 a = t.find("a")
                 if a:
                     link = a.get("href") or a.get("data-href")
@@ -49,33 +49,33 @@ def extract_from_element(el, base_url):
                 title = title.strip()
                 break
 
-    # fallback: any anchor in element
+    
     if not title:
         a = el.find("a")
         if a:
             title = (a.get_text() or a.get("title") or "").strip()
             link = link or a.get("href")
 
-    # summary
+    
     summary = None
     p = el.find("p")
     if p:
         summary = p.get_text().strip()
 
-    # date
+    
     date_text = None
     time_tag = el.find("time")
     if time_tag:
         date_text = time_tag.get("datetime") or time_tag.get_text()
     else:
-        # common date classes
+        
         for cls in ("date", "time", "post-date", "meta-date"):
             d = el.find(class_=lambda c: c and cls in c)
             if d:
                 date_text = d.get_text()
                 break
 
-    # image
+    
     img = el.find("img")
     img_src = img.get("src") if img else None
 
@@ -91,7 +91,7 @@ def extract_from_element(el, base_url):
 def find_news(soup, base_url):
     candidates = []
 
-    # try common containers
+    
     selectors = [
         "article",
         ".news-item",
@@ -116,7 +116,7 @@ def find_news(soup, base_url):
             if candidates:
                 break
 
-    # fallback: any top-level link blocks
+    
     if not candidates:
         for a in soup.select("a")[:60]:
             text = a.get_text().strip()
@@ -130,7 +130,7 @@ def find_news(soup, base_url):
                     "image": None,
                 })
 
-    # deduplicate by link or title
+    
     seen = set()
     out = []
     for c in candidates:
@@ -156,7 +156,6 @@ def scrape(url):
     soup = BeautifulSoup(resp.content, "lxml")
     base_url = "{}://{}".format(urlparse(url).scheme, urlparse(url).netloc)
 
-    # try main news lists
     news = find_news(soup, base_url)
 
     return news
